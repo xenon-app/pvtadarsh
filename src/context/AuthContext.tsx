@@ -1,51 +1,111 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { motion } from 'framer-motion';
+import { Lock, User, ChefHat, Receipt, ShieldCheck } from 'lucide-react';
 
-interface AuthContextType {
-  token: string | null;
-  role: 'admin' | 'kitchen' | 'billing' | null;
-  restaurantId: number | null;
-  login: (token: string, role: any, restaurantId: number) => void;
-  logout: () => void;
-}
+export default function Login() {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
-const AuthContext = createContext<AuthContextType>({
-  token: null,
-  role: null,
-  restaurantId: null,
-  login: () => {},
-  logout: () => {},
-});
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
 
-export const useAuth = () => useContext(AuthContext);
+    const validUsers = ['admin', 'kitchen', 'billing'];
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
-  const [role, setRole] = useState<any>(localStorage.getItem('role'));
-  const [restaurantId, setRestaurantId] = useState<number | null>(
-    localStorage.getItem('restaurantId') ? Number(localStorage.getItem('restaurantId')) : null
-  );
+    if (validUsers.includes(username) && password === 'password') {
+      login('demo-token', username, 1);
 
-  const login = (newToken: string, newRole: any, newRestaurantId: number) => {
-    localStorage.setItem('token', newToken);
-    localStorage.setItem('role', newRole);
-    localStorage.setItem('restaurantId', String(newRestaurantId));
-    setToken(newToken);
-    setRole(newRole);
-    setRestaurantId(newRestaurantId);
-  };
-
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    localStorage.removeItem('restaurantId');
-    setToken(null);
-    setRole(null);
-    setRestaurantId(null);
+      switch (username) {
+        case 'admin':
+          navigate('/admin');
+          break;
+        case 'kitchen':
+          navigate('/kitchen');
+          break;
+        case 'billing':
+          navigate('/billing');
+          break;
+      }
+    } else {
+      setError('Invalid username or password');
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ token, role, restaurantId, login, logout }}>
-      {children}
-    </AuthContext.Provider>
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md"
+      >
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-slate-800 mb-2">Adarsh PVT.</h1>
+          <p className="text-slate-500">Staff Portal Access</p>
+        </div>
+
+        {error && (
+          <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm text-center">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Username</label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="admin / kitchen / billing"
+              />
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="password"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-indigo-600 text-white py-2 rounded-xl font-medium hover:bg-indigo-700 transition-colors"
+          >
+            Sign In
+          </button>
+        </form>
+
+        <div className="mt-8 grid grid-cols-3 gap-4 text-center text-xs text-slate-400">
+          <div className="flex flex-col items-center gap-1">
+            <ShieldCheck className="w-5 h-5" />
+            <span>Admin</span>
+          </div>
+          <div className="flex flex-col items-center gap-1">
+            <ChefHat className="w-5 h-5" />
+            <span>Kitchen</span>
+          </div>
+          <div className="flex flex-col items-center gap-1">
+            <Receipt className="w-5 h-5" />
+            <span>Billing</span>
+          </div>
+        </div>
+      </motion.div>
+    </div>
   );
-};
+}
