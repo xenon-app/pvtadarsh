@@ -3,22 +3,19 @@
     "target": "ES2022",
     "module": "ESNext",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
-
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
-
     "allowJs": true,
     "isolatedModules": true,
     "skipLibCheck": true,
     "noEmit": true,
-
+    "strict": false,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-
     "paths": {
       "@/*": ["./*"]
     }
   },
-
+  "include": ["src"],
   "exclude": ["server", "server.ts", "node_modules"]
 }
