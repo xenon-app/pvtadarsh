@@ -1,5 +1,5 @@
 {
-  "name": "Adarsh PVT. SaaS",
+  "name": "Adarsh PVT",
   "description": "QR-based restaurant ordering system with customer, admin, kitchen, and billing interfaces.",
   "requestFramePermissions": ["geolocation"]
 }
