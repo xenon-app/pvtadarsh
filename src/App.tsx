@@ -1,52 +1,51 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
+import React, { createContext, useContext, useState } from 'react';
 
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { SocketProvider } from './context/SocketContext';
-import Login from './pages/Login';
-import CustomerTable from './pages/CustomerTable';
-import KitchenDashboard from './pages/KitchenDashboard';
-import BillingDashboard from './pages/BillingDashboard';
-import AdminDashboard from './pages/AdminDashboard';
-
-const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles: string[] }) => {
-  const { token, role } = useAuth();
-  if (!token) return <Navigate to="/" />;
-  if (!allowedRoles.includes(role || '')) return <Navigate to="/" />;
-  return <>{children}</>;
-};
-
-export default function App() {
-  return (
-    <AuthProvider>
-      <SocketProvider>
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/table/:restaurantId/:tableId" element={<CustomerTable />} />
-          
-          <Route path="/admin" element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <AdminDashboard />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/kitchen" element={
-            <ProtectedRoute allowedRoles={['kitchen', 'admin']}>
-              <KitchenDashboard />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/billing" element={
-            <ProtectedRoute allowedRoles={['billing', 'admin']}>
-              <BillingDashboard />
-            </ProtectedRoute>
-          } />
-        </Routes>
-      </SocketProvider>
-    </AuthProvider>
-  );
+interface AuthContextType {
+  token: string | null;
+  role: 'admin' | 'kitchen' | 'billing' | null;
+  restaurantId: number | null;
+  login: (token: string, role: any, restaurantId: number) => void;
+  logout: () => void;
 }
+
+const AuthContext = createContext<AuthContextType>({
+  token: null,
+  role: null,
+  restaurantId: null,
+  login: () => {},
+  logout: () => {},
+});
+
+export const useAuth = () => useContext(AuthContext);
+
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [role, setRole] = useState<any>(localStorage.getItem('role'));
+  const [restaurantId, setRestaurantId] = useState<number | null>(
+    localStorage.getItem('restaurantId') ? Number(localStorage.getItem('restaurantId')) : null
+  );
+
+  const login = (newToken: string, newRole: any, newRestaurantId: number) => {
+    localStorage.setItem('token', newToken);
+    localStorage.setItem('role', newRole);
+    localStorage.setItem('restaurantId', String(newRestaurantId));
+    setToken(newToken);
+    setRole(newRole);
+    setRestaurantId(newRestaurantId);
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    localStorage.removeItem('restaurantId');
+    setToken(null);
+    setRole(null);
+    setRestaurantId(null);
+  };
+
+  return (
+    <AuthContext.Provider value={{ token, role, restaurantId, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
